@@ -1,0 +1,7 @@
+bin/
+obj/
+out/
+dist/
+build_out/
+*.actual.png
+*.pdb

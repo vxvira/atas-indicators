@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <NoWarn>CA1416;xUnit1026</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AtasDir Condition="'$(AtasDir)'==''">C:\Program Files\ATAS X\</AtasDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VolumeProfileX.csproj" />
+    <Reference Include="ATAS.Indicators"><HintPath>$(AtasDir)ATAS.Indicators.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="ATAS.Types"><HintPath>$(AtasDir)ATAS.Types.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="OFT.Rendering"><HintPath>$(AtasDir)OFT.Rendering.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Utils.Common"><HintPath>$(AtasDir)Utils.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Drawing.Common"><HintPath>$(AtasDir)System.Drawing.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="SkiaSharp"><HintPath>$(AtasDir)SkiaSharp.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
