@@ -19,6 +19,8 @@ namespace VolumeProfileX
         private readonly ProfileRenderer _renderer = new ProfileRenderer();
         private readonly ChartLayout _layout = new ChartLayout();
         private readonly List<LevelIn> _buf = new List<LevelIn>(512);
+        private readonly Dictionary<long, PeriodProfile> _periods = new Dictionary<long, PeriodProfile>();
+        private const int MaxPeriods = 3000;
         private readonly object _sync;
         private int _pendingBar = -1;
         private decimal _tick = 0.25m;
@@ -58,6 +60,7 @@ namespace VolumeProfileX
         {
             _win.Configure(_s.EffectiveHours, ComputeAnchorUtc());
             _win.Reset();
+            _periods.Clear();
             _pendingBar = -1;
         }
 
@@ -73,7 +76,7 @@ namespace VolumeProfileX
                 int lastIdx = CurrentBar - 1;
                 var last = lastIdx >= 0 ? GetCandle(lastIdx) : null;
                 if (last == null) last = c;
-                if (!_win.Accepts(c.Time, last.Time)) return;
+                if (!_s.Multi && !_win.Accepts(c.Time, last.Time)) return;
                 if (bar >= lastIdx) { _pendingBar = bar; return; }
                 FeedLocked(bar, c);
             }
@@ -107,7 +110,26 @@ namespace VolumeProfileX
             decimal inv = _tick;
             foreach (var p in c.GetAllPriceLevels())
                 _buf.Add(new LevelIn((long)Math.Round(p.Price / inv), (double)p.Volume, (double)p.Bid, (double)p.Ask, p.Ticks));
+            if (_s.Multi) { RouteLocked(bar, c.Time); return; }
             _win.Feed(bar, c.Time, _buf);
+        }
+
+        private void RouteLocked(int bar, DateTime time)
+        {
+            long idx = PeriodMath.Index(time, _s.EffectiveHours, _s.AnchorBase, InstrumentInfo?.TimeZoneOffset ?? TimeSpan.Zero, ComputeAnchorUtc());
+            if (idx == long.MinValue) return;
+            if (!_periods.TryGetValue(idx, out var p))
+            {
+                if (_periods.Count >= MaxPeriods)
+                {
+                    long oldest = long.MaxValue;
+                    foreach (var k in _periods.Keys) if (k < oldest) oldest = k;
+                    _periods.Remove(oldest);
+                }
+                p = new PeriodProfile(idx);
+                _periods[idx] = p;
+            }
+            p.Win.Feed(bar, time, _buf);
         }
 
         private DateTime? ComputeAnchorUtc()
@@ -149,6 +171,26 @@ namespace VolumeProfileX
             if (!LayerOk(layout)) return;
             var pc = ChartInfo?.PriceChartContainer;
             if (pc == null) return;
+            if (_s.Multi)
+            {
+                int first = pc.FirstVisibleBarNumber, lastVis = pc.LastVisibleBarNumber;
+                var vis = new List<PeriodProfile>();
+                lock (_sync)
+                {
+                    FlushLocked();
+                    UpdateTickLocked();
+                    int rows = EffectiveRowsPerBucket();
+                    foreach (var p in _periods.Values)
+                    {
+                        if (p.Win.IsEmpty || p.Win.LastBar < first - 1 || p.Win.ProfileFirstBar > lastVis + 1) continue;
+                        p.Snap.Update(p.Win, rows, _s.ValueAreaPct, _s.HvnPct, _s.LvnPct, (double)_tick);
+                        vis.Add(p);
+                    }
+                }
+                _layout.C = pc; _layout.Tick = _tick; _layout.ClipR = context.ClipBounds;
+                foreach (var p in vis) _renderer.Draw(context, p.Snap, _s, _layout);
+                return;
+            }
             lock (_sync)
             {
                 FlushLocked();

@@ -33,6 +33,7 @@ namespace VolumeProfileX
 
         public bool UseFixedAnchor = false;
         public double Hours = 6;
+        public bool Multi = false;
         public double Days = 0;
         public double EffectiveHours => Days > 0 ? Days * 24.0 : Hours;
         public string AnchorStart = "";

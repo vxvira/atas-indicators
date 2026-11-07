@@ -11,6 +11,7 @@ def add(g, name, typ, field, disp, desc="", recalc=False, rng=None):
 add(1, "UseFixedAnchor", "bool", "UseFixedAnchor", "Use fixed anchor start (else rolling hours)", "Off: window = last N hours ending at the last bar. On: window = anchor start time .. last bar.", True)
 add(1, "Hours", "double", "Hours", "Window hours (rolling)", "Fractional allowed (0.5, 1.25, 6). Bars whose open time is later than lastBarTime - hours are included.", True, (0.01, 2000))
 add(1, "Days", "double", "Days", "Window days (0 = use hours)", "If above 0, overrides Window hours: window = last N days (fractional ok, no upper limit).", True)
+add(1, "Multi", "bool", "Multi", "Multiple profiles (one per window)", "Instead of one profile, draw one for every window period (every N hours or N days, aligned to midnight in the anchor time zone; with a fixed anchor, periods start at the anchor).", True)
 add(1, "AnchorStart", "string", "AnchorStart", "Anchor start (yyyy-MM-dd HH:mm)", "Fixed anchor start, e.g. 2026-11-06 01:20. Used when 'Use fixed anchor' is on. Invalid text -> rolling window.", True)
 add(1, "AnchorBase", "AnchorTimeBase", "AnchorBase", "Anchor time zone", "How the anchor text is interpreted: PC local, UTC or instrument exchange time.", True)
 add(1, "Layer", "RenderLayer", "Layer", "Render layer", "Which ATAS drawing layer the profile is painted in. If nothing shows, try LatestBar or All.")

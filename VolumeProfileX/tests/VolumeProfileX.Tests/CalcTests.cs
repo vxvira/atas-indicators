@@ -271,5 +271,51 @@ namespace VolumeProfileX.Tests
             Assert.Equal(360, w.BarCount);
             Assert.True(sw.ElapsedMilliseconds < 1500, "took " + sw.ElapsedMilliseconds + " ms");
         }
+
+        [Fact]
+        public void Period_index_hourly_boundaries()
+        {
+            var z = TimeSpan.Zero;
+            long a = PeriodMath.Index(T0.AddMinutes(59), 1, AnchorTimeBase.Utc, z, null);
+            long b = PeriodMath.Index(T0.AddMinutes(60), 1, AnchorTimeBase.Utc, z, null);
+            long c = PeriodMath.Index(T0.AddMinutes(61), 1, AnchorTimeBase.Utc, z, null);
+            Assert.Equal(a + 1, b);
+            Assert.Equal(b, c);
+        }
+
+        [Fact]
+        public void Period_index_days_and_weeks_align_to_midnight_and_monday()
+        {
+            var z = TimeSpan.Zero;
+            long d0 = PeriodMath.Index(new DateTime(2026, 11, 6, 23, 59, 0, DateTimeKind.Utc), 24, AnchorTimeBase.Utc, z, null);
+            long d1 = PeriodMath.Index(new DateTime(2026, 11, 7, 0, 0, 0, DateTimeKind.Utc), 24, AnchorTimeBase.Utc, z, null);
+            Assert.Equal(d0 + 1, d1);
+            long w0 = PeriodMath.Index(new DateTime(2026, 11, 8, 23, 0, 0, DateTimeKind.Utc), 168, AnchorTimeBase.Utc, z, null);
+            long w1 = PeriodMath.Index(new DateTime(2026, 11, 9, 0, 0, 0, DateTimeKind.Utc), 168, AnchorTimeBase.Utc, z, null);
+            Assert.Equal(w0 + 1, w1);
+        }
+
+        [Fact]
+        public void Period_index_with_anchor_starts_at_anchor_and_ignores_earlier_bars()
+        {
+            var anchor = T0.AddHours(5);
+            Assert.Equal(long.MinValue, PeriodMath.Index(T0.AddHours(4), 2, AnchorTimeBase.Utc, TimeSpan.Zero, anchor));
+            Assert.Equal(0, PeriodMath.Index(T0.AddHours(6.9), 2, AnchorTimeBase.Utc, TimeSpan.Zero, anchor));
+            Assert.Equal(1, PeriodMath.Index(T0.AddHours(7), 2, AnchorTimeBase.Utc, TimeSpan.Zero, anchor));
+        }
+
+        [Fact]
+        public void Period_profiles_accumulate_separately()
+        {
+            var p0 = new PeriodProfile(0); var p1 = new PeriodProfile(1);
+            p0.Win.Feed(0, T0, L((100, 10)));
+            p0.Win.Feed(1, T0.AddMinutes(1), L((100, 5)));
+            p1.Win.Feed(2, T0.AddMinutes(60), L((100, 7)));
+            p0.Snap.Update(p0.Win, 1, 70, 85, 15, 0.25); p1.Snap.Update(p1.Win, 1, 70, 85, 15, 0.25);
+            Assert.Equal(15, p0.Snap.Total);
+            Assert.Equal(7, p1.Snap.Total);
+            Assert.Equal(0, p0.Snap.FirstBar);
+            Assert.Equal(2, p1.Snap.FirstBar);
+        }
     }
 }

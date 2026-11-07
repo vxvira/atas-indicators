@@ -15,13 +15,16 @@ namespace VolumeProfileX
         [Display(Name = "Window days (0 = use hours)", GroupName = "1. Window / Anchor", Order = 30, Description = "If above 0, overrides Window hours: window = last N days (fractional ok, no upper limit).")]
         public double Days { get => _s.Days; set => Set(ref _s.Days, value, true); }
 
-        [Display(Name = "Anchor start (yyyy-MM-dd HH:mm)", GroupName = "1. Window / Anchor", Order = 40, Description = "Fixed anchor start, e.g. 2026-11-06 01:20. Used when 'Use fixed anchor' is on. Invalid text -> rolling window.")]
+        [Display(Name = "Multiple profiles (one per window)", GroupName = "1. Window / Anchor", Order = 40, Description = "Instead of one profile, draw one for every window period (every N hours or N days, aligned to midnight in the anchor time zone; with a fixed anchor, periods start at the anchor).")]
+        public bool Multi { get => _s.Multi; set => Set(ref _s.Multi, value, true); }
+
+        [Display(Name = "Anchor start (yyyy-MM-dd HH:mm)", GroupName = "1. Window / Anchor", Order = 50, Description = "Fixed anchor start, e.g. 2026-11-06 01:20. Used when 'Use fixed anchor' is on. Invalid text -> rolling window.")]
         public string AnchorStart { get => _s.AnchorStart; set => Set(ref _s.AnchorStart, value, true); }
 
-        [Display(Name = "Anchor time zone", GroupName = "1. Window / Anchor", Order = 50, Description = "How the anchor text is interpreted: PC local, UTC or instrument exchange time.")]
+        [Display(Name = "Anchor time zone", GroupName = "1. Window / Anchor", Order = 60, Description = "How the anchor text is interpreted: PC local, UTC or instrument exchange time.")]
         public AnchorTimeBase AnchorBase { get => _s.AnchorBase; set => Set(ref _s.AnchorBase, value, true); }
 
-        [Display(Name = "Render layer", GroupName = "1. Window / Anchor", Order = 60, Description = "Which ATAS drawing layer the profile is painted in. If nothing shows, try LatestBar or All.")]
+        [Display(Name = "Render layer", GroupName = "1. Window / Anchor", Order = 70, Description = "Which ATAS drawing layer the profile is painted in. If nothing shows, try LatestBar or All.")]
         public RenderLayer Layer { get => _s.Layer; set => Set(ref _s.Layer, value, false); }
 
         [Display(Name = "Border on box edge", GroupName = "2. Position & Size", Order = 10, Description = "Which vertical edge of the anchor box the border (profile origin) sits on.")]
